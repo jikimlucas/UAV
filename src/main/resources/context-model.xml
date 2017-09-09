@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:tx="http://www.springframework.org/schema/tx"
+        xmlns:aop="http://www.springframework.org/schema/aop"
+        xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+        					http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        					http://www.springframework.org/schema/context
+        					http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        					http://www.springframework.org/schema/aop
+        					http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+        					http://www.springframework.org/schema/tx
+        					http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+        					http://www.springframework.org/schema/data/jpa 
+    						http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd"
+        					 default-autowire="byName"  default-init-method="init">
+
+	<import resource="context-datasource.xml"/>
+
+	<!-- 	Spring-data JPA configurations -->
+
+	<bean id="hibernateJpaVendorAdapter" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
+	
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+	    <property name="dataSource" ref="dataSource"/>
+	    <property name="jpaVendorAdapter" ref="hibernateJpaVendorAdapter"/>
+	    <property name="jpaProperties">
+	      <props>
+	        <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+	        <prop key="hibernate.hbm2ddl.auto">${dataSource.hbm2ddl}</prop>
+	      </props>
+	    </property>
+	    <!-- Set base package of your entities -->
+	    <property name="packagesToScan" value="org.qcri.micromappers.uav.entity"/>
+  	</bean>
+  
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+    	<property name="entityManagerFactory" ref="entityManagerFactory"/>
+  	</bean>
+
+  <!-- Enable annotation driven transaction management -->
+  <tx:annotation-driven />
+
+  <!-- 
+    Configure Spring Data JPA and set the base package of the 
+    repository interfaces 
+  -->
+  <jpa:repositories base-package="org.qcri.micromappers.uav.repository"/>
+</beans>

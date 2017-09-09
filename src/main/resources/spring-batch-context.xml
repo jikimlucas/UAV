@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		   xmlns:batch="http://www.springframework.org/schema/batch"
+		   xmlns:task="http://www.springframework.org/schema/task"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xmlns:context="http://www.springframework.org/schema/context"
+		   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+		   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/batch
+    http://www.springframework.org/schema/batch/spring-batch.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/jdbc
+	http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	http://www.springframework.org/schema/task
+	http://www.springframework.org/schema/task/spring-task.xsd">
+
+
+
+	<import resource="context-model.xml"/>
+	<context:component-scan base-package="org.qcri.micromappers.uav"></context:component-scan>
+
+	<!-- JobRepository and JobLauncher are configuration/setup classes -->
+	<bean id="jobRepository"
+		  class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+		<property name="transactionManager" ref="transactionManager" />
+	</bean>
+
+	<bean id="jobLauncher" 	class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+	</bean>
+
+
+	<!-- Actual Job Steps -->
+	<job id="myJob" xmlns="http://www.springframework.org/schema/batch" restartable="true" job-repository="jobRepository">
+		<step id="step1" allow-start-if-complete="true">
+			<tasklet ref="textSentimentTasklet"></tasklet>
+		</step>
+	</job>
+
+
+	<bean id="textSentimentTasklet" class="org.qcri.micromappers.uav.batch.tasklet.SentimentAnalysisFetcher"></bean>
+
+	<bean id="myScheduler" class="org.qcri.micromappers.uav.batch.scheduler.UAVScheduler"/>
+	<!-- this is where we are scheduling the job to run using our scheduler every 15 min, note how the method of the
+	     scheduler and the cron expression to be used are being specified -->
+	<task:scheduled-tasks>
+		<task:scheduled ref="myScheduler" method="run" cron="0 0/01 * * * ?"/>
+	</task:scheduled-tasks>
+
+</beans>			
